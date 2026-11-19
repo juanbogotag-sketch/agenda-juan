@@ -366,7 +366,8 @@
   $('#fabManual').addEventListener('click', function () { hideFabMenu(); openForm(null); });
   $('#fabExisting').addEventListener('click', function () { hideFabMenu(); openPicker(); });
 
-  /* ---------- Selector de eventos del Repositorio ---------- */
+  /* ---------- Selector de eventos del Repositorio: calendario semanal ---------- */
+  var pickWeekStart = null;
   function fmtFechaCorta(iso) {
     if (!iso) return 'Sin fecha';
     var d = fromISO(iso);
@@ -378,30 +379,58 @@
     var ext = (rev.externals || []).filter(function (x) { return x && x.fn && x.ln; });
     return { keys: Object.keys(keys), externals: ext, total: Object.keys(keys).length + ext.length };
   }
+  function pickRowHtml(rev) {
+    var t = repoGuestTotal(rev);
+    return '<button type="button" class="pickrow" data-id="' + esc(rev.id) + '">' +
+      '<span class="hitname">' + esc(rev.name || 'Evento sin nombre') + '</span>' +
+      '<span class="hitmeta">' + esc(fmtFechaCorta(rev.date)) + (rev.place ? ' · ' + esc(rev.place) : '') + '</span>' +
+      '<span class="hitmeta">' + t.total + (t.total === 1 ? ' invitado' : ' invitados') + '</span></button>';
+  }
   function openPicker() {
-    var list = loadRepoEvents().slice().sort(function (a, b) {
-      return (a.date || '9999').localeCompare(b.date || '9999');
-    });
-    var box = $('#pickList');
-    if (!list.length) {
-      box.innerHTML = '<p class="nores">No hay eventos guardados en el menú Eventos del Repositorio en este dispositivo. Créalo primero en el Repositorio con «Crear evento».</p>';
-    } else {
-      box.innerHTML = list.map(function (rev, i) {
-        var t = repoGuestTotal(rev);
-        return '<button type="button" class="pickrow" data-i="' + i + '">' +
-          '<span class="hitname">' + esc(rev.name || 'Evento sin nombre') + '</span>' +
-          '<span class="hitmeta">' + esc(fmtFechaCorta(rev.date)) + (rev.place ? ' · ' + esc(rev.place) : '') + '</span>' +
-          '<span class="hitmeta">' + t.total + (t.total === 1 ? ' invitado' : ' invitados') + '</span></button>';
-      }).join('');
-      box.querySelectorAll('.pickrow').forEach(function (b) {
-        b.addEventListener('click', function () {
-          $('#pickOverlay').hidden = true;
-          importRepoEvent(list[+b.dataset.i]);
-        });
-      });
-    }
+    pickWeekStart = mondayOf(new Date());
+    renderPicker();
     $('#pickOverlay').hidden = false;
   }
+  function renderPicker() {
+    var list = loadRepoEvents();
+    var end = new Date(pickWeekStart); end.setDate(end.getDate() + 6);
+    $('#pickLabel').textContent = pickWeekStart.getDate() + ' ' + MESES[pickWeekStart.getMonth()].slice(0, 3) +
+      ' — ' + end.getDate() + ' ' + MESES[end.getMonth()].slice(0, 3) + ' ' + end.getFullYear();
+    var box = $('#pickList');
+    if (!list.length) {
+      box.innerHTML = '<p class="nores">No hay eventos guardados en el menú Eventos del Repositorio en este dispositivo. Crea uno en el Repositorio y abre la Agenda en el mismo navegador (por ejemplo, Safari) para verlo aquí.</p>';
+      return;
+    }
+    var today = toISO(new Date());
+    var html = '';
+    for (var i = 0; i < 7; i++) {
+      var d = new Date(pickWeekStart); d.setDate(d.getDate() + i);
+      var isoD = toISO(d);
+      var dayEv = list.filter(function (rev) { return rev.date === isoD; })
+        .sort(function (a, b) { return String(a.name || '').localeCompare(String(b.name || '')); });
+      html += '<div class="pickday"><div class="pickdayhead"><span>' + DIAS_C[d.getDay()] + ' ' + d.getDate() + ' ' + MESES[d.getMonth()] + '</span>' +
+        (isoD === today ? '<span class="todayBadge">Hoy</span>' : '') + '</div>';
+      if (!dayEv.length) html += '<p class="nores">Sin eventos</p>';
+      else html += dayEv.map(pickRowHtml).join('');
+      html += '</div>';
+    }
+    var noDate = list.filter(function (rev) { return !rev.date; });
+    if (noDate.length) {
+      html += '<div class="pickday"><div class="pickdayhead"><span>Sin fecha</span></div>' +
+        noDate.map(pickRowHtml).join('') + '</div>';
+    }
+    box.innerHTML = html;
+    box.querySelectorAll('.pickrow').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var rev = list.find(function (x) { return x.id === b.dataset.id; });
+        $('#pickOverlay').hidden = true;
+        if (rev) importRepoEvent(rev);
+      });
+    });
+  }
+  $('#pickPrev').addEventListener('click', function () { pickWeekStart.setDate(pickWeekStart.getDate() - 7); renderPicker(); });
+  $('#pickNext').addEventListener('click', function () { pickWeekStart.setDate(pickWeekStart.getDate() + 7); renderPicker(); });
+  $('#pickToday').addEventListener('click', function () { pickWeekStart = mondayOf(new Date()); renderPicker(); });
   $('#pickClose').addEventListener('click', function () { $('#pickOverlay').hidden = true; });
 
   /* Importar un evento del Repositorio a la agenda.
