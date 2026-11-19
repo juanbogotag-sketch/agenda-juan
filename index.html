@@ -9,7 +9,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="css/agenda.css?v=3">
+<link rel="stylesheet" href="css/agenda.css?v=4">
 </head>
 <body>
 <header class="top">
@@ -40,7 +40,13 @@
       <h2 id="pickTitle">Eventos del Repositorio</h2>
       <button type="button" class="x" id="pickClose" aria-label="Cerrar">×</button>
     </header>
-    <p class="hint">Elige un evento del menú Eventos del Repositorio para traerlo a tu agenda.</p>
+    <p class="hint">Elige un evento del calendario semanal del Repositorio para traerlo a tu agenda.</p>
+    <div class="picknav">
+      <button type="button" id="pickPrev" aria-label="Semana anterior">‹</button>
+      <span id="pickLabel"></span>
+      <button type="button" id="pickToday">Hoy</button>
+      <button type="button" id="pickNext" aria-label="Semana siguiente">›</button>
+    </div>
     <div id="pickList"></div>
   </section>
 </div>
@@ -139,6 +145,6 @@
 
 <script src="https://juanbogotag-sketch.github.io/organigramas-dod-jcs/js/datos_foro.js?v=6"></script>
 <script src="js/contactos.js"></script>
-<script src="js/agenda.js?v=4"></script>
+<script src="js/agenda.js?v=5"></script>
 </body>
 </html>
