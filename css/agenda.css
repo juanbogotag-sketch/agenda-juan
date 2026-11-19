@@ -70,6 +70,27 @@ input { font: inherit; }
   box-shadow: 0 4px 14px rgba(0, 0, 0, .35); z-index: 30;
 }
 
+/* Menú del botón + : manual o evento existente */
+.fabmenu {
+  position: fixed; right: 18px; bottom: calc(90px + env(safe-area-inset-bottom)); z-index: 30;
+  background: #fff; border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .25); overflow: hidden; min-width: 240px;
+}
+.fabmenu[hidden] { display: none; }
+.fabmenu button {
+  display: block; width: 100%; text-align: left; border: none; background: #fff;
+  padding: 14px 16px; font-size: 16px; font-weight: 700; color: var(--dark);
+}
+.fabmenu button + button { border-top: 1px solid var(--line); }
+.fabmenu button:active { background: #eef3f4; }
+
+/* Filas del selector de eventos del Repositorio */
+.pickrow {
+  display: block; width: 100%; text-align: left; background: #f2f6f7;
+  border: 1px solid var(--line); border-radius: 10px; padding: 10px; margin-top: 8px;
+}
+.pickrow:active { background: #e3edee; }
+
 /* Hojas (formulario, detalle, perfil) */
 .overlay {
   position: fixed; inset: 0; z-index: 50; background: rgba(20, 30, 36, .55);
@@ -90,10 +111,13 @@ input { font: inherit; }
 
 #evForm label { display: block; margin-top: 12px; font-weight: 600; font-size: 14px; }
 #evForm input[type="text"], #evForm input[type="date"], #evForm input[type="time"],
-#evForm input[type="search"], #evForm input[type="email"], #evForm input[type="tel"] {
+#evForm input[type="search"], #evForm input[type="email"], #evForm input[type="tel"],
+#evForm textarea {
   display: block; width: 100%; margin-top: 4px; min-height: 44px;
   border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; background: #fff;
+  font: inherit; font-size: 15px;
 }
+#evForm textarea { resize: vertical; }
 .opt { font-weight: 400; color: var(--muted); }
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .row2 label { min-width: 0; }
@@ -137,6 +161,7 @@ input { font: inherit; }
 
 .dmeta { margin: 6px 0; font-size: 16px; }
 .dmeta strong { font-weight: 700; }
+.gcount { margin: 10px 0 4px; font-weight: 700; color: var(--teal); }
 
 /* Asistentes en el detalle */
 .attrow {
