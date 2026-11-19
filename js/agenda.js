@@ -238,6 +238,7 @@
     var ev = events.find(function (x) { return x.id === id; });
     if (!ev) return;
     detailId = id;
+    disarmDelete();
     $('#dName').textContent = ev.name;
     $('#dWhen').textContent = fmtFechaLarga(fromISO(ev.date)) + ' · ' + ev.start + (ev.end ? ' – ' + ev.end : '');
     $('#dPlace').textContent = ev.place ? 'Lugar: ' + ev.place : '';
@@ -262,19 +263,32 @@
     }
     $('#detailOverlay').hidden = false;
   }
-  function closeDetail() { $('#detailOverlay').hidden = true; }
+  function closeDetail() { $('#detailOverlay').hidden = true; disarmDelete(); }
   $('#detailClose').addEventListener('click', closeDetail);
   $('#dEdit').addEventListener('click', function () {
     var ev = events.find(function (x) { return x.id === detailId; });
     closeDetail();
     if (ev) openForm(ev);
   });
+  var deleteArmed = false;
+  function disarmDelete() {
+    deleteArmed = false;
+    var b = $('#dDelete');
+    if (b) { b.textContent = 'Eliminar evento'; b.classList.remove('armed'); }
+  }
   $('#dDelete').addEventListener('click', function () {
     var ev = events.find(function (x) { return x.id === detailId; });
     if (!ev) return;
-    if (!window.confirm('¿Eliminar el evento «' + ev.name + '»?')) return;
+    if (!deleteArmed) {
+      deleteArmed = true;
+      var b = $('#dDelete');
+      b.textContent = '¿Seguro? Toca de nuevo para eliminar';
+      b.classList.add('armed');
+      return;
+    }
     events = events.filter(function (x) { return x.id !== detailId; });
     saveEvents(events);
+    disarmDelete();
     closeDetail();
     renderWeek();
   });
