@@ -91,6 +91,19 @@ input { font: inherit; }
 }
 .pickrow:active { background: #e3edee; }
 
+/* Calendario semanal del selector */
+.picknav { display: flex; align-items: center; gap: 8px; margin: 12px 0 4px; }
+.picknav button {
+  min-height: 40px; border: 1px solid var(--line); border-radius: 10px;
+  background: #fff; padding: 6px 12px; font-weight: 700; font-size: 15px;
+}
+.picknav #pickLabel { flex: 1; text-align: center; font-weight: 700; font-size: 14px; }
+.pickday { margin-top: 16px; }
+.pickdayhead {
+  display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 14px;
+  text-transform: uppercase; letter-spacing: .4px; color: var(--muted);
+}
+
 /* Hojas (formulario, detalle, perfil) */
 .overlay {
   position: fixed; inset: 0; z-index: 50; background: rgba(20, 30, 36, .55);
