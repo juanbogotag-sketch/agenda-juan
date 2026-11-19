@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Agenda</title>
+<meta name="description" content="Agenda personal de Juan Pablo González Bogotá: calendario semanal con asistentes y acceso rápido a sus perfiles.">
+<meta name="theme-color" content="#1d5c63">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="css/agenda.css">
+</head>
+<body>
+<header class="top">
+  <h1>Agenda</h1>
+  <p class="sub">Juan Pablo González Bogotá · Embajada de Colombia en Washington</p>
+</header>
+
+<nav class="weeknav" aria-label="Navegación de semana">
+  <button id="prevW" type="button" aria-label="Semana anterior">‹</button>
+  <button id="todayBtn" type="button">Hoy</button>
+  <span id="weekLabel" aria-live="polite"></span>
+  <button id="nextW" type="button" aria-label="Semana siguiente">›</button>
+</nav>
+
+<main id="week" aria-live="polite"></main>
+
+<button id="fab" type="button" aria-label="Nuevo evento">+</button>
+
+<!-- Formulario: crear / editar evento -->
+<div class="overlay" id="formOverlay" hidden>
+  <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="formTitle">
+    <header class="sheethead">
+      <h2 id="formTitle">Nuevo evento</h2>
+      <button type="button" class="x" id="formClose" aria-label="Cerrar">×</button>
+    </header>
+    <form id="evForm">
+      <label>Nombre del evento
+        <input id="fName" type="text" required maxlength="120" placeholder="Ej.: Protegiendo las Américas" autocomplete="off">
+      </label>
+      <div class="row2">
+        <label>Fecha
+          <input id="fDate" type="date" required>
+        </label>
+        <label>Lugar <span class="opt">(opcional)</span>
+          <input id="fPlace" type="text" maxlength="120" placeholder="Ej.: Residencia de la Embajada" autocomplete="off">
+        </label>
+      </div>
+      <div class="row2">
+        <label>Hora de inicio
+          <input id="fStart" type="time" required>
+        </label>
+        <label>Hora de fin <span class="opt">(opcional)</span>
+          <input id="fEnd" type="time">
+        </label>
+      </div>
+
+      <fieldset class="att">
+        <legend>Asistentes</legend>
+        <p class="hint">Busca en el Repositorio por nombre, cargo u organización, o añade a alguien externo.</p>
+        <input id="attSearch" type="search" placeholder="Buscar perfil: nombre, cargo u organización…" autocomplete="off">
+        <div id="attResults"></div>
+        <div id="attChips"></div>
+        <div class="ext">
+          <p class="exth">Persona externa</p>
+          <input id="extName" type="text" placeholder="Nombre y apellido" autocomplete="off">
+          <div class="row2">
+            <input id="extEmail" type="email" placeholder="Correo" autocomplete="off">
+            <input id="extPhone" type="tel" placeholder="Teléfono" autocomplete="off">
+          </div>
+          <button type="button" id="extAdd" class="btn ghost">+ Añadir persona externa</button>
+        </div>
+      </fieldset>
+
+      <p class="err" id="formErr" hidden></p>
+      <div class="actions">
+        <button type="button" class="btn ghost" id="formCancel">Cancelar</button>
+        <button type="submit" class="btn primary">Guardar evento</button>
+      </div>
+    </form>
+  </section>
+</div>
+
+<!-- Detalle del evento -->
+<div class="overlay" id="detailOverlay" hidden>
+  <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="dName">
+    <header class="sheethead">
+      <h2 id="dName"></h2>
+      <button type="button" class="x" id="detailClose" aria-label="Cerrar">×</button>
+    </header>
+    <p class="dmeta" id="dWhen"></p>
+    <p class="dmeta" id="dPlace"></p>
+    <h3>Asistentes</h3>
+    <div id="dAttendees"></div>
+    <div class="actions">
+      <button type="button" class="btn danger" id="dDelete">Eliminar evento</button>
+      <button type="button" class="btn primary" id="dEdit">Editar</button>
+    </div>
+  </section>
+</div>
+
+<!-- Perfil del asistente -->
+<div class="overlay" id="profileOverlay" hidden>
+  <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="pName">
+    <header class="sheethead">
+      <h2 id="pName"></h2>
+      <button type="button" class="x" id="profileClose" aria-label="Cerrar">×</button>
+    </header>
+    <div class="prof" id="pBody"></div>
+  </section>
+</div>
+
+<footer>
+  <p>Los eventos de esta agenda viven solo en este dispositivo: no se envían a ningún servidor ni se comparten con nadie. Los perfiles se consultan del Repositorio y los contactos son una copia fija del 19 nov 2026.</p>
+</footer>
+
+<script src="https://juanbogotag-sketch.github.io/organigramas-dod-jcs/js/datos_foro.js?v=6"></script>
+<script src="js/contactos.js"></script>
+<script src="js/agenda.js"></script>
+</body>
+</html>
