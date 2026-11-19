@@ -172,7 +172,7 @@
     editingId = ev ? ev.id : null;
     formAttendees = ev ? JSON.parse(JSON.stringify(ev.attendees || [])) : [];
     formGuestCount = ev ? (ev.guestCount || 0) : 0;
-    $('#formTitle').textContent = ev ? 'Editar evento' : 'Nuevo evento';
+    $('#formTitle').textContent = (ev && ev.id) ? 'Editar evento' : 'Nuevo evento';
     $('#fName').value = ev ? ev.name : '';
     $('#fDate').value = ev ? ev.date : (presetDate || toISO(new Date()));
     $('#fStart').value = ev ? (ev.start || '') : '';
