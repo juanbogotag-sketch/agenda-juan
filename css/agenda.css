@@ -131,6 +131,7 @@ input { font: inherit; }
 }
 .btn.primary { background: var(--teal); border-color: var(--teal); color: #fff; }
 .btn.danger { background: #fff; border-color: var(--danger); color: var(--danger); }
+.btn.danger.armed { background: var(--danger); color: #fff; }
 .btn.ghost { flex: 1; }
 .ext .btn { width: 100%; margin-top: 8px; }
 
