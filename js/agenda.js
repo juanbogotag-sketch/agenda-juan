@@ -72,6 +72,16 @@
   var editingId = null;      // id del evento en edición, o null si es nuevo
   var detailId = null;       // id del evento abierto en el detalle
   var formAttendees = [];    // asistentes mientras el formulario está abierto
+  var formGuestCount = 0;    // asistentes importados solo como número (eventos de 20 o más)
+
+  /* ---------- Eventos del Repositorio (mismo origen, solo lectura) ---------- */
+  function loadRepoEvents() {
+    try { var v = JSON.parse(localStorage.getItem('torio_eventos_v1') || '[]'); return Array.isArray(v) ? v : []; }
+    catch (e) { return []; }
+  }
+  function attCount(ev) {
+    return (ev.attendees || []).length + (ev.guestCount || 0);
+  }
 
   /* ---------- Semana ---------- */
   function renderWeek() {
@@ -96,7 +106,7 @@
           '<span class="evtime">' + esc(e.start || '') + (e.end ? ' – ' + esc(e.end) : '') + '</span>' +
           '<span class="evname">' + esc(e.name) + '</span>' +
           (e.place ? '<span class="evplace">' + esc(e.place) + '</span>' : '') +
-          '<span class="evatt">' + e.attendees.length + (e.attendees.length === 1 ? ' asistente' : ' asistentes') + '</span>' +
+          '<span class="evatt">' + attCount(e) + (attCount(e) === 1 ? ' asistente' : ' asistentes') + '</span>' +
           '</button>';
       });
       html += '</section>';
@@ -161,12 +171,19 @@
   function openForm(ev, presetDate) {
     editingId = ev ? ev.id : null;
     formAttendees = ev ? JSON.parse(JSON.stringify(ev.attendees || [])) : [];
+    formGuestCount = ev ? (ev.guestCount || 0) : 0;
     $('#formTitle').textContent = ev ? 'Editar evento' : 'Nuevo evento';
     $('#fName').value = ev ? ev.name : '';
     $('#fDate').value = ev ? ev.date : (presetDate || toISO(new Date()));
     $('#fStart').value = ev ? (ev.start || '') : '';
     $('#fEnd').value = ev ? (ev.end || '') : '';
     $('#fPlace').value = ev ? (ev.place || '') : '';
+    $('#fDesc').value = ev ? (ev.desc || '') : '';
+    var fc = $('#formCount');
+    if (formGuestCount > 0) {
+      fc.textContent = 'Este evento trae ' + formGuestCount + ' asistentes como número (no se importaron los nombres).';
+      fc.hidden = false;
+    } else { fc.hidden = true; }
     $('#attSearch').value = '';
     $('#attResults').innerHTML = '';
     $('#extName').value = '';
@@ -201,7 +218,9 @@
       id: editingId || newId(),
       name: name, date: date, start: start,
       end: end || '', place: place,
-      attendees: formAttendees
+      desc: $('#fDesc').value.trim(),
+      attendees: formAttendees,
+      guestCount: formGuestCount
     };
     if (editingId) {
       var i = events.findIndex(function (x) { return x.id === editingId; });
@@ -242,11 +261,17 @@
     $('#dName').textContent = ev.name;
     $('#dWhen').textContent = fmtFechaLarga(fromISO(ev.date)) + ' · ' + ev.start + (ev.end ? ' – ' + ev.end : '');
     $('#dPlace').textContent = ev.place ? 'Lugar: ' + ev.place : '';
+    var dDesc = $('#dDesc');
+    if (ev.desc) { dDesc.textContent = ev.desc; dDesc.hidden = false; }
+    else { dDesc.textContent = ''; dDesc.hidden = true; }
     var box = $('#dAttendees');
-    if (!ev.attendees.length) {
+    var gcount = ev.guestCount || 0;
+    if (!ev.attendees.length && !gcount) {
       box.innerHTML = '<p class="noev">Sin asistentes.</p>';
     } else {
-      box.innerHTML = ev.attendees.map(function (a, i) {
+      box.innerHTML = (gcount > 0
+        ? '<p class="gcount">' + gcount + (gcount === 1 ? ' asistente' : ' asistentes') + ' (solo se importó el número).</p>'
+        : '') + ev.attendees.map(function (a, i) {
         var p = a.type === 'repo' ? BY_KEY[a.key] : null;
         var name = a.type === 'repo' ? (p ? p.name : a.key) : a.name;
         var meta = p ? (p.title || '') + (p.org ? ' · ' + p.org : '')
@@ -329,6 +354,84 @@
   }
   $('#profileClose').addEventListener('click', function () { $('#profileOverlay').hidden = true; });
 
+  /* ---------- Botón + : manual o evento existente ---------- */
+  function hideFabMenu() { $('#fabMenu').hidden = true; }
+  $('#fab').addEventListener('click', function (e) {
+    e.stopPropagation();
+    $('#fabMenu').hidden = !$('#fabMenu').hidden;
+  });
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('#fabMenu') && !e.target.closest('#fab')) hideFabMenu();
+  });
+  $('#fabManual').addEventListener('click', function () { hideFabMenu(); openForm(null); });
+  $('#fabExisting').addEventListener('click', function () { hideFabMenu(); openPicker(); });
+
+  /* ---------- Selector de eventos del Repositorio ---------- */
+  function fmtFechaCorta(iso) {
+    if (!iso) return 'Sin fecha';
+    var d = fromISO(iso);
+    return DIAS_C[d.getDay()] + ' ' + d.getDate() + ' ' + MESES[d.getMonth()].slice(0, 3) + ' ' + d.getFullYear();
+  }
+  function repoGuestTotal(rev) {
+    var keys = {};
+    (rev.guests || []).forEach(function (g) { if (g && g.key) keys[g.key] = true; });
+    var ext = (rev.externals || []).filter(function (x) { return x && x.fn && x.ln; });
+    return { keys: Object.keys(keys), externals: ext, total: Object.keys(keys).length + ext.length };
+  }
+  function openPicker() {
+    var list = loadRepoEvents().slice().sort(function (a, b) {
+      return (a.date || '9999').localeCompare(b.date || '9999');
+    });
+    var box = $('#pickList');
+    if (!list.length) {
+      box.innerHTML = '<p class="nores">No hay eventos guardados en el menú Eventos del Repositorio en este dispositivo. Créalo primero en el Repositorio con «Crear evento».</p>';
+    } else {
+      box.innerHTML = list.map(function (rev, i) {
+        var t = repoGuestTotal(rev);
+        return '<button type="button" class="pickrow" data-i="' + i + '">' +
+          '<span class="hitname">' + esc(rev.name || 'Evento sin nombre') + '</span>' +
+          '<span class="hitmeta">' + esc(fmtFechaCorta(rev.date)) + (rev.place ? ' · ' + esc(rev.place) : '') + '</span>' +
+          '<span class="hitmeta">' + t.total + (t.total === 1 ? ' invitado' : ' invitados') + '</span></button>';
+      }).join('');
+      box.querySelectorAll('.pickrow').forEach(function (b) {
+        b.addEventListener('click', function () {
+          $('#pickOverlay').hidden = true;
+          importRepoEvent(list[+b.dataset.i]);
+        });
+      });
+    }
+    $('#pickOverlay').hidden = false;
+  }
+  $('#pickClose').addEventListener('click', function () { $('#pickOverlay').hidden = true; });
+
+  /* Importar un evento del Repositorio a la agenda.
+     Los eventos del Repositorio no traen hora: se propone 18:30–19:30 y
+     se abre el formulario ya rellenado para revisarlo antes de guardar.
+     Menos de 20 invitados: se importan con sus datos. 20 o más: solo el número. */
+  function importRepoEvent(rev) {
+    var t = repoGuestTotal(rev);
+    var attendees = [];
+    var guestCount = 0;
+    if (t.total < 20) {
+      attendees = t.keys.map(function (k) { return { type: 'repo', key: k }; })
+        .concat(t.externals.map(function (x) {
+          return { type: 'ext', name: (x.fn + ' ' + x.ln).trim(), email: x.email || '', phone: x.other || '' };
+        }));
+    } else {
+      guestCount = t.total;
+    }
+    openForm({
+      id: null,
+      name: rev.name || '',
+      date: rev.date || toISO(new Date()),
+      start: '18:30', end: '19:30',
+      place: rev.place || '',
+      desc: rev.desc || rev.description || rev.notes || '',
+      attendees: attendees,
+      guestCount: guestCount
+    });
+  }
+
   /* ---------- Navegación de semana ---------- */
   $('#prevW').addEventListener('click', function () {
     weekStart.setDate(weekStart.getDate() - 7);
@@ -342,7 +445,6 @@
     weekStart = mondayOf(new Date());
     renderWeek();
   });
-  $('#fab').addEventListener('click', function () { openForm(null); });
 
   /* Cerrar hojas tocando fuera de ellas */
   document.querySelectorAll('.overlay').forEach(function (ov) {
