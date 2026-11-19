@@ -9,7 +9,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="css/agenda.css?v=2">
+<link rel="stylesheet" href="css/agenda.css?v=3">
 </head>
 <body>
 <header class="top">
@@ -27,6 +27,23 @@
 <main id="week" aria-live="polite"></main>
 
 <button id="fab" type="button" aria-label="Nuevo evento">+</button>
+
+<div id="fabMenu" class="fabmenu" hidden>
+  <button type="button" id="fabManual">Agregar manualmente</button>
+  <button type="button" id="fabExisting">Agregar evento existente</button>
+</div>
+
+<!-- Selector: evento existente del Repositorio -->
+<div class="overlay" id="pickOverlay" hidden>
+  <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="pickTitle">
+    <header class="sheethead">
+      <h2 id="pickTitle">Eventos del Repositorio</h2>
+      <button type="button" class="x" id="pickClose" aria-label="Cerrar">×</button>
+    </header>
+    <p class="hint">Elige un evento del menú Eventos del Repositorio para traerlo a tu agenda.</p>
+    <div id="pickList"></div>
+  </section>
+</div>
 
 <!-- Formulario: crear / editar evento -->
 <div class="overlay" id="formOverlay" hidden>
@@ -55,10 +72,14 @@
           <input id="fEnd" type="time">
         </label>
       </div>
+      <label>Descripción <span class="opt">(opcional)</span>
+        <textarea id="fDesc" rows="2" maxlength="500" placeholder="Ej.: Charla y brindis con los invitados"></textarea>
+      </label>
 
       <fieldset class="att">
         <legend>Asistentes</legend>
         <p class="hint">Busca en el Repositorio por nombre, cargo u organización, o añade a alguien externo.</p>
+        <p class="hint" id="formCount" hidden></p>
         <input id="attSearch" type="search" placeholder="Buscar perfil: nombre, cargo u organización…" autocomplete="off">
         <div id="attResults"></div>
         <div id="attChips"></div>
@@ -91,6 +112,7 @@
     </header>
     <p class="dmeta" id="dWhen"></p>
     <p class="dmeta" id="dPlace"></p>
+    <p class="dmeta" id="dDesc" hidden></p>
     <h3>Asistentes</h3>
     <div id="dAttendees"></div>
     <div class="actions">
@@ -117,6 +139,6 @@
 
 <script src="https://juanbogotag-sketch.github.io/organigramas-dod-jcs/js/datos_foro.js?v=6"></script>
 <script src="js/contactos.js"></script>
-<script src="js/agenda.js?v=2"></script>
+<script src="js/agenda.js?v=3"></script>
 </body>
 </html>
